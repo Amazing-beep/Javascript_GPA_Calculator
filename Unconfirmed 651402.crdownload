@@ -1,0 +1,268 @@
+// GPA Calculator - Core Logic
+// Array to store all assignments
+let assignments = [];
+
+// Load assignments from localStorage if available
+function loadAssignments() {
+    const savedAssignments = localStorage.getItem('gpaCalculatorAssignments');
+    if (savedAssignments) {
+        assignments = JSON.parse(savedAssignments);
+        console.log('Loaded assignments from localStorage:', assignments);
+    }
+}
+
+// Save assignments to localStorage
+function saveAssignments() {
+    localStorage.setItem('gpaCalculatorAssignments', JSON.stringify(assignments));
+    console.log('Saved assignments to localStorage:', assignments);
+}
+
+// Calculate GPA using reduce method
+function calculateGPA() {
+    if (assignments.length === 0) {
+        return 0;
+    }
+    
+    // Use reduce to sum all grades and divide by number of assignments
+    const totalGrades = assignments.reduce((sum, assignment) => {
+        return sum + parseFloat(assignment.grade);
+    }, 0);
+    
+    const gpa = totalGrades / assignments.length;
+    return Math.round(gpa * 100) / 100; // Round to 2 decimal places
+}
+
+// Add a new assignment
+function addAssignment(name, grade) {
+    // Validate inputs
+    if (!name || name.trim() === '') {
+        alert('Please enter an assignment name');
+        return false;
+    }
+    
+    const gradeNum = parseFloat(grade);
+    if (isNaN(gradeNum) || gradeNum < 0 || gradeNum > 5) {
+        alert('Please enter a valid grade between 0 and 5');
+        return false;
+    }
+    
+    // Create assignment object
+    const assignment = {
+        id: Date.now(), // Simple ID using timestamp
+        name: name.trim(),
+        grade: gradeNum
+    };
+    
+    // Add to assignments array
+    assignments.push(assignment);
+    
+    // Save to localStorage
+    saveAssignments();
+    
+    console.log('Added assignment:', assignment);
+    console.log('Current assignments:', assignments);
+    
+    return true;
+}
+
+// Remove an assignment by ID
+function removeAssignment(id) {
+    const index = assignments.findIndex(assignment => assignment.id === id);
+    if (index !== -1) {
+        const removed = assignments.splice(index, 1)[0];
+        saveAssignments();
+        console.log('Removed assignment:', removed);
+        return true;
+    }
+    return false;
+}
+
+// Get all assignments
+function getAllAssignments() {
+    return [...assignments]; // Return a copy to prevent external modification
+}
+
+// Clear all assignments
+function clearAllAssignments() {
+    assignments = [];
+    saveAssignments();
+    console.log('Cleared all assignments');
+}
+
+// Log all data to console (triggered by 'S' key)
+function logAllData() {
+    console.log('=== GPA Calculator Data ===');
+    console.log('Total Assignments:', assignments.length);
+    console.log('Current GPA:', calculateGPA());
+    console.log('All Assignments:');
+    assignments.forEach((assignment, index) => {
+        console.log(`${index + 1}. ${assignment.name}: ${assignment.grade}/5`);
+    });
+    console.log('Raw Data:', assignments);
+    console.log('========================');
+}
+
+// Initialize the application
+function initializeApp() {
+    loadAssignments();
+    console.log('GPA Calculator initialized');
+    console.log('Press "S" to log all data to console');
+}
+
+
+
+// DOM Elements
+let assignmentNameInput;
+let assignmentGradeInput;
+let addAssignmentBtn;
+let gpaValueDisplay;
+let assignmentsContainer;
+
+// Update GPA display in the UI
+function updateGPADisplay() {
+    const currentGPA = calculateGPA();
+    gpaValueDisplay.textContent = currentGPA.toFixed(2);
+    
+    // Add color coding based on GPA
+    gpaValueDisplay.className = 'gpa-value';
+    if (currentGPA >= 4.5) {
+        gpaValueDisplay.style.color = '#28a745'; // Green for excellent
+    } else if (currentGPA >= 3.5) {
+        gpaValueDisplay.style.color = '#17a2b8'; // Blue for good
+    } else if (currentGPA >= 2.5) {
+        gpaValueDisplay.style.color = '#ffc107'; // Yellow for average
+    } else {
+        gpaValueDisplay.style.color = '#dc3545'; // Red for poor
+    }
+}
+
+// Render all assignments in the UI
+function renderAssignments() {
+    if (assignments.length === 0) {
+        assignmentsContainer.innerHTML = '<p class="no-assignments">No assignments added yet. Add your first assignment above!</p>';
+        return;
+    }
+    
+    assignmentsContainer.innerHTML = '';
+    
+    assignments.forEach(assignment => {
+        const assignmentElement = document.createElement('div');
+        assignmentElement.className = 'assignment-item new';
+        assignmentElement.innerHTML = `
+            <div class="assignment-info">
+                <span class="assignment-name">${assignment.name}</span>
+            </div>
+            <div class="assignment-actions">
+                <span class="assignment-grade">${assignment.grade}/5</span>
+                <button class="btn-remove" onclick="handleRemoveAssignment(${assignment.id})" title="Remove assignment">×</button>
+            </div>
+        `;
+        
+        assignmentsContainer.appendChild(assignmentElement);
+        
+        // Remove the 'new' class after animation
+        setTimeout(() => {
+            assignmentElement.classList.remove('new');
+        }, 300);
+    });
+}
+
+// Handle adding a new assignment
+function handleAddAssignment() {
+    const name = assignmentNameInput.value;
+    const grade = assignmentGradeInput.value;
+    
+    if (addAssignment(name, grade)) {
+        // Clear input fields
+        assignmentNameInput.value = '';
+        assignmentGradeInput.value = '';
+        
+        // Update UI
+        renderAssignments();
+        updateGPADisplay();
+        
+        // Focus back to name input for quick entry
+        assignmentNameInput.focus();
+    }
+}
+
+// Handle removing an assignment
+function handleRemoveAssignment(id) {
+    if (confirm('Are you sure you want to remove this assignment?')) {
+        if (removeAssignment(id)) {
+            renderAssignments();
+            updateGPADisplay();
+        }
+    }
+}
+
+// Handle keyboard events
+function handleKeyPress(event) {
+    // Press 'S' to log all data to console
+    if (event.key.toLowerCase() === 's' && !event.ctrlKey && !event.altKey) {
+        // Only trigger if not typing in an input field
+        if (event.target.tagName !== 'INPUT') {
+            logAllData();
+        }
+    }
+    
+    // Press Enter in grade input to add assignment
+    if (event.key === 'Enter' && event.target === assignmentGradeInput) {
+        handleAddAssignment();
+    }
+    
+    // Press Enter in name input to focus on grade input
+    if (event.key === 'Enter' && event.target === assignmentNameInput) {
+        assignmentGradeInput.focus();
+    }
+}
+
+// Initialize DOM event listeners
+function initializeEventListeners() {
+    // Get DOM elements
+    assignmentNameInput = document.getElementById('assignment-name');
+    assignmentGradeInput = document.getElementById('assignment-grade');
+    addAssignmentBtn = document.getElementById('add-assignment');
+    gpaValueDisplay = document.getElementById('gpa-value');
+    assignmentsContainer = document.getElementById('assignments-container');
+    
+    // Add event listeners
+    addAssignmentBtn.addEventListener('click', handleAddAssignment);
+    
+    // Keyboard event listeners
+    document.addEventListener('keydown', handleKeyPress);
+    
+    // Input validation for grade field
+    assignmentGradeInput.addEventListener('input', function() {
+        const value = parseFloat(this.value);
+        if (value > 5) {
+            this.value = 5;
+        } else if (value < 0) {
+            this.value = 0;
+        }
+    });
+    
+    console.log('Event listeners initialized');
+}
+
+// Initialize the entire application
+function initializeApplication() {
+    // Wait for DOM to be fully loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            initializeEventListeners();
+            renderAssignments();
+            updateGPADisplay();
+        });
+    } else {
+        initializeApp();
+        initializeEventListeners();
+        renderAssignments();
+        updateGPADisplay();
+    }
+}
+
+// Start the application
+initializeApplication();
+

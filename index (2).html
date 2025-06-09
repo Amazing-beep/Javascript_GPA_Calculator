@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPA Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>GPA Calculator</h1>
+            <p>Add your assignments and track your GPA in real-time</p>
+        </header>
+
+        <main>
+            <section class="input-section">
+                <h2>Add Assignment</h2>
+                <div class="input-group">
+                    <label for="assignment-name">Assignment Name:</label>
+                    <input type="text" id="assignment-name" placeholder="Enter assignment name" required>
+                </div>
+                <div class="input-group">
+                    <label for="assignment-grade">Grade (out of 5):</label>
+                    <input type="number" id="assignment-grade" min="0" max="5" step="0.1" placeholder="Enter grade" required>
+                </div>
+                <button id="add-assignment" class="btn-primary">Add Assignment</button>
+            </section>
+
+            <section class="gpa-display">
+                <h2>Current GPA</h2>
+                <div class="gpa-value" id="gpa-value">0.00</div>
+                <p class="gpa-scale">Out of 5.0</p>
+            </section>
+
+            <section class="assignments-list">
+                <h2>Your Assignments</h2>
+                <div id="assignments-container">
+                    <p class="no-assignments">No assignments added yet. Add your first assignment above!</p>
+                </div>
+            </section>
+
+            <section class="instructions">
+                <p><strong>Tip:</strong> Press 'S' to log all your data to the browser console</p>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
